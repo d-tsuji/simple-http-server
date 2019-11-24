@@ -32,13 +32,16 @@ func (res *Response) SetHeader(key, value string) {
 func NotFoundError(w io.Writer) {
 	resp := Response{
 		status: "HTTP/1.1 404 Not Found",
-		body: string(`
-<div id="main">
-		<div class="fof">
-				<h1>Error 404</h1>
-		</div>
-</div>
-`),
+		body:   string("<h1>Not Found Error 404</h1>"),
+	}
+	resp.SetHeader("Content-Type", "text/html")
+	resp.WriteResponse(w)
+}
+
+func InternalServerError(w io.Writer) {
+	resp := Response{
+		status: "HTTP/1.1 500 Internal Server Error",
+		body:   string("<h1>Internal Server Error 500</h1>"),
 	}
 	resp.SetHeader("Content-Type", "text/html")
 	resp.WriteResponse(w)

@@ -3,13 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net"
 	"net/textproto"
 	"os"
 	"path/filepath"
-
-	"github.com/pkg/errors"
 )
 
 func Run() error {
@@ -27,8 +26,20 @@ func Run() error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	defer conn.Close()
 
+	go func() {
+		defer conn.Close()
+		// エラーが発生した場合は Status Code 500 としてクライアントに返却する
+		if err := service(conn); err != nil {
+			fmt.Printf("%+v", err)
+			InternalServerError(conn)
+		}
+	}()
+
+	return nil
+}
+
+func service(conn net.Conn) error {
 	fmt.Println(">>> start")
 
 	reader := bufio.NewReader(conn)
@@ -53,9 +64,6 @@ func Run() error {
 			return errors.WithStack(err)
 		}
 		p := filepath.Join(cwd, filepath.Clean(path))
-		if err != nil {
-			return errors.WithStack(err)
-		}
 
 		// file not found
 		if !fileExists(p) {
