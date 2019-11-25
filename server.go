@@ -27,14 +27,14 @@ func Run() error {
 		return errors.WithStack(err)
 	}
 
-	go func() {
+	go func(conn net.Conn) {
 		defer conn.Close()
 		// エラーが発生した場合は Status Code 500 としてクライアントに返却する
 		if err := service(conn); err != nil {
 			fmt.Printf("%+v", err)
 			InternalServerError(conn)
 		}
-	}()
+	}(conn)
 
 	return nil
 }
